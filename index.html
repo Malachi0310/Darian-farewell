@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farewell, Darian</title>
+<style>
+  :root{
+    --bg:#0b0f17; --panel:#111827; --panel2:#0f1522; --line:#1f2a3c;
+    --green:#3dff9a; --green-dim:#1f8f57; --amber:#ffc857; --red:#ff5d6c; --blue:#5cc8ff;
+    --text:#d7e1ee; --muted:#7f8ea3;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--mono);line-height:1.55;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+    background:repeating-linear-gradient(to bottom,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px}
+  section{padding:64px 0;border-bottom:1px dashed var(--line)}
+  h2{font-size:1rem;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px}
+  h2::before{content:"$ ";color:var(--muted)}
+  .sub{color:var(--muted);margin:0 0 24px;font-size:.9rem}
+  .btn{background:transparent;color:var(--green);border:1px solid var(--green);padding:10px 20px;border-radius:6px;font:inherit;font-size:.9rem;cursor:pointer;transition:.15s;text-decoration:none;display:inline-block}
+  .btn:hover{background:var(--green);color:#04120a;box-shadow:0 0 18px rgba(61,255,154,.4)}
+  .btn.amber{color:var(--amber);border-color:var(--amber)} .btn.amber:hover{background:var(--amber);color:#1a1205}
+  .btn.red{color:var(--red);border-color:var(--red)} .btn.red:hover{background:var(--red);color:#1a0508}
+  .center{text-align:center}
+  .c-g{color:var(--green)} .c-a{color:var(--amber)} .c-r{color:var(--red)} .c-b{color:var(--blue)} .c-m{color:var(--muted)}
+  @keyframes blink{50%{opacity:0}}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}}
+
+  /* Boot */
+  #boot{position:fixed;inset:0;background:#000;z-index:100;padding:28px;font-size:.88rem;color:#b9c4d2;cursor:pointer;transition:opacity .4s}
+  #boot .ok{color:var(--green)} #boot .warn{color:var(--amber)} #boot .err{color:var(--red)}
+  #boot .press{margin-top:18px;color:var(--green);animation:blink 1s steps(1) infinite}
+
+  /* Hero */
+  .hero{min-height:90vh;display:flex;flex-direction:column;justify-content:center;border-bottom:1px dashed var(--line)}
+  .tag{color:var(--muted);font-size:.85rem}
+  .glitch{font-size:clamp(2.6rem,9vw,6.2rem);font-weight:800;margin:10px 0 6px;line-height:1;color:#fff;position:relative}
+  .glitch span{color:var(--green)}
+  .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;overflow:hidden}
+  .glitch::before{color:var(--red);transform:translate(-2px,0);animation:g1 3.2s infinite linear alternate-reverse;opacity:.75}
+  .glitch::after{color:var(--blue);transform:translate(2px,0);animation:g2 2.6s infinite linear alternate-reverse;opacity:.75}
+  @keyframes g1{0%,88%{clip-path:inset(0 0 100% 0)}90%{clip-path:inset(10% 0 60% 0)}94%{clip-path:inset(40% 0 30% 0)}100%{clip-path:inset(0 0 100% 0)}}
+  @keyframes g2{0%,85%{clip-path:inset(100% 0 0 0)}88%{clip-path:inset(60% 0 10% 0)}93%{clip-path:inset(20% 0 55% 0)}100%{clip-path:inset(100% 0 0 0)}}
+  .typed{font-size:clamp(1rem,2.4vw,1.2rem);min-height:1.8em}
+  .typed::after{content:"▌";color:var(--green);animation:blink 1s steps(1) infinite}
+  .hero-actions{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+
+  /* Uninstall dialog */
+  .dialog{max-width:520px;margin:0 auto;background:#e9edf3;color:#1b2330;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:system-ui,Segoe UI,sans-serif}
+  .dialog .bar{background:linear-gradient(#2f6fd6,#2457b1);color:#fff;padding:8px 12px;font-size:.85rem;display:flex;justify-content:space-between}
+  .dialog .body{padding:22px}
+  .progress{height:22px;background:#fff;border:1px solid #9aa6b8;border-radius:3px;overflow:hidden;margin:14px 0}
+  .progress i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,#33c46b 0 10px,#2aa95b 10px 12px);transition:width .2s}
+  .dialog .status{font-size:.85rem;min-height:3.2em;color:#3b475a}
+  .dialog .row{display:flex;gap:10px;justify-content:flex-end}
+  .dialog button{font-family:system-ui,sans-serif;padding:6px 18px;border:1px solid #8693a8;background:#f6f8fb;border-radius:3px;cursor:pointer}
+  .dialog button:hover{background:#dde6f5}
+  .dialog button:disabled{opacity:.5;cursor:not-allowed}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;cursor:pointer;transition:.15s;user-select:none}
+  .stat:hover{border-color:var(--green-dim);transform:translateY(-2px)}
+  .stat .ic{font-size:1.4rem}
+  .stat .num{font-size:2rem;font-weight:800;color:var(--green)}
+  .stat .lbl{color:var(--muted);font-size:.82rem}
+  .stat .quip{font-size:.78rem;color:var(--amber);min-height:1.2em;margin-top:6px}
+  .fine{color:var(--muted);font-size:.75rem;margin-top:12px}
+
+  /* Terminal */
+  .term{background:#05080d;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .term .top{background:#141b27;padding:8px 12px;display:flex;gap:7px;align-items:center}
+  .term .top i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .term .top small{color:var(--muted);margin-left:8px}
+  #termOut{height:300px;overflow-y:auto;padding:14px 16px;font-size:.88rem;white-space:pre-wrap;word-break:break-word}
+  .term .inrow{display:flex;padding:0 16px 14px;align-items:center}
+  .term .prompt{color:var(--green);white-space:nowrap}
+  #termIn{flex:1;background:transparent;border:0;outline:0;color:var(--text);font:inherit;font-size:.88rem;margin-left:6px}
+  .cmd-callout{font-size:1.15rem;color:#fff;margin:22px 0 14px;animation:nudge 1.4s ease-in-out infinite}
+  @keyframes nudge{50%{transform:translateY(3px)}}
+  .cmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+  .cmd{display:flex;align-items:center;gap:10px;text-align:left;background:linear-gradient(180deg,#14261d,#0e1a14);border:1px solid var(--green-dim);color:var(--green);padding:14px;border-radius:10px;font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:.15s;animation:glow 2.4s ease-in-out infinite}
+  .cmd .e{font-size:1.4rem}
+  .cmd small{display:block;color:var(--muted);font-weight:400;font-size:.72rem}
+  .cmd:hover{background:var(--green);color:#04120a;transform:translateY(-2px)}
+  .cmd:hover small{color:#0b3a22}
+  .cmd.ran{border-color:var(--green);animation:none}
+  .cmd.ran::after{content:"✔";margin-left:auto}
+  @keyframes glow{50%{box-shadow:0 0 14px rgba(61,255,154,.35)}}
+
+  /* Messages */
+  form{display:grid;gap:10px}
+  input,textarea{background:var(--panel);border:1px solid var(--line);color:var(--text);font:inherit;font-size:.9rem;padding:10px;border-radius:6px}
+  textarea{min-height:80px;resize:vertical}
+  input:focus,textarea:focus{outline:1px solid var(--green-dim)}
+  form .btn{justify-self:start}
+  #msgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:22px}
+  .m{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:8px;padding:14px 16px;animation:pop .3s ease}
+  .m p{margin:0;white-space:pre-wrap;font-size:.9rem}
+  .m b{display:block;margin-top:8px;color:var(--green);font-size:.8rem;font-weight:normal}
+
+  /* Reboot flash + finale */
+  #flash{position:fixed;inset:0;background:#000;z-index:90;pointer-events:none;opacity:0}
+  #flash.on{animation:crt 1.6s ease forwards}
+  @keyframes crt{0%{opacity:0}8%{opacity:1;transform:scaleY(1)}20%{opacity:1;background:#fff;transform:scaleY(.005)}35%{background:#000;opacity:1}75%{opacity:1}100%{opacity:0}}
+  #final{position:fixed;inset:0;background:#000;z-index:95;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+  #final.show{display:flex;animation:fade 1.2s ease}
+  #final h3{font-size:clamp(1.8rem,5.5vw,3.4rem);margin:0;color:#fff;min-height:1.2em}
+  #finalMsg{color:var(--green);font-size:clamp(1rem,2.6vw,1.4rem);min-height:1.5em}
+  @keyframes fade{from{opacity:0}}
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99;will-change:transform}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--green-dim);color:var(--green);padding:10px 18px;border-radius:8px;z-index:80;font-size:.85rem;animation:pop .3s ease}
+  footer{padding:30px 0 60px;color:var(--muted);font-size:.78rem;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="boot"></div>
+<div id="flash"></div>
+<canvas id="confetti"></canvas>
+
+<!-- HERO -->
+<div class="wrap">
+  <header class="hero">
+    <div class="tag">// farewell.exe — from the whole office</div>
+    <h1 class="glitch" data-text="Goodbye, Darian">Goodbye, <span>Darian</span></h1>
+    <div class="typed" id="typed"></div>
+    <div class="hero-actions">
+      <a href="#uninstall" class="btn">▶ run farewell</a>
+      <a href="#cmd-sec" class="btn amber">⌨ run his commands</a>
+    </div>
+  </header>
+</div>
+
+<!-- UNINSTALL -->
+<section id="uninstall">
+  <div class="wrap">
+    <h2>uninstall darian.exe</h2>
+    <p class="sub">Management has approved removing Darian from the office. Please proceed.</p>
+    <div class="dialog">
+      <div class="bar"><span>Darian Uninstall Wizard</span><span>✕</span></div>
+      <div class="body">
+        <div id="unText">Are you sure you want to completely remove <b>Darian</b> and all of his components from this office?</div>
+        <div class="progress"><i id="unBar"></i></div>
+        <div class="status" id="unStatus">Ready.</div>
+        <div class="row"><button id="unYes">Yes</button><button id="unNo">No</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section>
+  <div class="wrap">
+    <h2>darian's uptime report</h2>
+    <p class="sub">Click any tile to rerun the diagnostic.</p>
+    <div class="stats" id="stats"></div>
+    <div class="fine">* Numbers estimated. Nobody was counting, Darian was too busy.</div>
+  </div>
+</section>
+
+<!-- TERMINAL -->
+<section id="cmd-sec">
+  <div class="wrap">
+    <h2>darian@office:~</h2>
+    <div class="term">
+      <div class="top"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><small>bash — darian@office</small></div>
+      <div id="termOut"></div>
+      <div class="inrow"><span class="prompt">you@office:~$</span><input id="termIn" autocomplete="off" spellcheck="false" aria-label="Terminal input"></div>
+    </div>
+    <p class="cmd-callout">👇 Click a button to run one of Darian's commands</p>
+    <div class="cmds" id="chips"></div>
+    <p class="sub">Or type your own in the terminal. Try <span class="c-g">help</span>.</p>
+  </div>
+</section>
+
+<!-- REBOOT -->
+<section>
+  <div class="wrap center">
+    <h2 style="display:inline-block">troubleshooting</h2>
+    <p style="font-size:1.3rem;margin:0 0 20px">Sad that Darian is leaving?</p>
+    <button class="btn amber" id="reboot">Have you tried turning it off and on again?</button>
+    <p id="rebootMsg" class="c-m" style="margin-top:18px;min-height:1.5em"></p>
+  </div>
+</section>
+
+<!-- FINALE -->
+<section style="border:0">
+  <div class="wrap center">
+    <h2 style="display:inline-block">final command</h2>
+    <p class="sub">When you're ready.</p>
+    <button class="btn red" id="shutdown">sudo shutdown -h now</button>
+  </div>
+</section>
+
+<footer>farewell.exe exited with code 0</footer>
+
+<div id="final">
+  <h3 id="finalTitle"></h3>
+  <p id="finalMsg"></p>
+  <p id="finalFrom" style="color:var(--muted);font-size:1.05rem;min-height:1.5em"></p>
+  <button class="btn" id="back" style="margin-top:22px">back</button>
+</div>
+
+<script>
+/* ======== EASY EDITS ======== */
+const NAME = "Darian";
+const STATS = [
+  { icon:"📜", n:250,  label:"Script setups done",  q:["Set up, tested, running.","Scripts don't write themselves. He did."] },
+  { icon:"⬆️", n:1200, label:"Data loads run",      q:["Loaded. Every time.","Zero rows lost. Probably."] },
+  { icon:"📤", n:900,  label:"Data sends done",     q:["Sent, delivered, confirmed.","Always on time."] },
+  { icon:"🔊", n:300,  label:"Sound issues fixed",  q:["\"Can you hear me now?\" Yes, thanks to him.","Is NoiseTorch active?"] },
+  { icon:"🛠️", n:5000, label:"Things fixed",        q:["If it broke, he fixed it.","\"It's working now\" ✓"] },
+  { icon:"⚡", n:2000, label:"Monsters consumed",   q:["Fully powered by Monster.","The real uptime SLA."] },
+];
+const LINES = [
+  `Connection to ${NAME} will be terminated shortly.`,
+  `Scripts: set up. Data: loaded and sent. ${NAME}: logging off.`,
+  `Thanks for fixing everything, even the sound.`,
+  `Running on Monster since day one.`,
+];
+/* ============================ */
+
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2600); }
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- BOOT ---------- */
+(async () => {
+  const el = $('#boot');
+  const lines = [
+    ['FAREWELL BIOS v4.20  (C) The Office', ''],
+    ['Memory test: 640K... enough memories for anybody', 'ok'],
+    ['Detecting primary IT hero........ ' + NAME.toUpperCase(), 'ok'],
+    ['Loading monster.sys', 'ok'],
+    ['Mounting /dev/printer ........... still jammed', 'warn'],
+    ['Checking replacement for ' + NAME + ' ... NOT FOUND', 'err'],
+    ['Starting farewell.exe', 'ok'],
+  ];
+  let done = false;
+  const skip = () => { if (done) return; done = true; el.style.opacity = 0; setTimeout(()=>el.remove(),400); startTyped(); };
+  el.addEventListener('click', skip);
+  document.addEventListener('keydown', skip, {once:true});
+  for (const [t,c] of lines) {
+    if (done) return;
+    const d = document.createElement('div');
+    d.innerHTML = c ? `[<span class="${c}">${c==='ok'?' OK ':c==='warn'?'WARN':'FAIL'}</span>] ${esc(t)}` : esc(t);
+    el.appendChild(d);
+    await sleep(320);
+  }
+  if (done) return;
+  const p = document.createElement('div'); p.className='press'; p.textContent='Press any key (or click) to continue_'; el.appendChild(p);
+})();
+
+/* ---------- TYPED HERO ---------- */
+let typing = false;
+async function startTyped(){
+  if (typing) return; typing = true;
+  const el = $('#typed'); let i = 0;
+  while (true) {
+    const p = LINES[i++ % LINES.length];
+    for (let c=1;c<=p.length;c++){ el.textContent=p.slice(0,c); await sleep(38); }
+    await sleep(2200);
+    for (let c=p.length;c>=0;c--){ el.textContent=p.slice(0,c); await sleep(14); }
+    await sleep(300);
+  }
+}
+
+/* ---------- UNINSTALL ---------- */
+(() => {
+  const bar=$('#unBar'), st=$('#unStatus'), yes=$('#unYes'), no=$('#unNo'), txt=$('#unText');
+  let running=false, attempts=0;
+  const errs = [
+    "❌ Cannot uninstall Darian: component is irreplaceable.",
+    "❌ Uninstall failed: script setups, data loads and data sends still depend on Darian.",
+    "❌ Error: No replacement found. Darian cannot be removed.",
+  ];
+  yes.onclick = async () => {
+    if (running) return; running = true; yes.disabled = no.disabled = true;
+    const steps = ["Removing Monster stash from desk...","Handing over script setups...","Transferring data loads and sends...","Reassigning sound issues to... nobody...","Removing Darian..."];
+    let pct = 0;
+    for (const s of steps) {
+      st.textContent = s;
+      const target = Math.min(pct + 19, 97);
+      while (pct < target) { pct += 1.3; bar.style.width = Math.min(pct,target)+'%'; await sleep(28); }
+      await sleep(220);
+    }
+    if (attempts < errs.length) {
+      st.innerHTML = `<span style="color:#c0303f">${errs[attempts++]}</span>`;
+      yes.textContent = 'Retry'; no.textContent = 'Give up';
+    } else {
+      bar.style.width = '100%';
+      bar.style.background = '#d9534f';
+      st.innerHTML = `<b style="color:#c0303f">UNINSTALL FAILED.</b> ${NAME} can't be uninstalled. He's irreplaceable. 💚`;
+      txt.innerHTML = `${NAME} will stay installed in our memories permanently.`;
+      yes.style.display = 'none'; no.textContent = 'Close';
+      burst(140);
+    }
+    running = false; yes.disabled = no.disabled = false;
+  };
+  no.onclick = () => {
+    if (no.textContent === 'Close') { toast('Window closed. The feelings remain open.'); return; }
+    st.textContent = "Good choice. We don't want to uninstall him either. But go on, try clicking Yes.";
+  };
+})();
+
+/* ---------- STATS ---------- */
+(() => {
+  const wrap = $('#stats');
+  const runs = STATS.map(s => {
+    const d = document.createElement('div'); d.className = 'stat';
+    d.innerHTML = `<div class="ic">${s.icon}</div><div class="num">0</div><div class="lbl">${s.label}</div><div class="quip"></div>`;
+    wrap.appendChild(d);
+    let qi = 0;
+    const run = () => {
+      const el = d.querySelector('.num'), start = performance.now();
+      const f = t => { const p=Math.min((t-start)/1200,1); el.textContent=Math.round(s.n*(1-Math.pow(1-p,3))).toLocaleString()+(p===1?'+':''); if(p<1) requestAnimationFrame(f); };
+      requestAnimationFrame(f);
+      d.querySelector('.quip').textContent = '> ' + s.q[qi++ % s.q.length];
+    };
+    d.onclick = run; return run;
+  });
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { runs.forEach((r,i)=>setTimeout(r,i*120)); io.disconnect(); } }, {threshold:.3});
+  io.observe(wrap);
+})();
+
+/* ---------- TERMINAL ---------- */
+(() => {
+  const out=$('#termOut'), inp=$('#termIn');
+  const print = h => { const d=document.createElement('div'); d.innerHTML=h; out.appendChild(d); out.scrollTop=out.scrollHeight; };
+  const cmds = {
+    help: () => `<span class="c-a">Commands:</span> whoami · ./setup_script.sh · ./data_load.sh · ./data_send.sh · fix sound · fix everything · ping darian · sudo stay · ./add_more_ram.sh · cat handover.txt · ./next_adventure.sh · clear`,
+    whoami: () => `<span class="c-g">${NAME}</span> — IT. Script setups, data loads, data sends, sound issues,
+and fixing basically everything else. Role: <span class="c-a">irreplaceable</span>`,
+    './setup_script.sh': () => { later([`<span class="c-m">configuring...</span>`,`<span class="c-m">testing...</span>`,`<span class="c-g">✔ Script set up and running.</span> <span class="c-m">(First try. Classic ${NAME}.)</span>`]); return 'Setting up script...'; },
+    './data_load.sh': () => { later([`[████░░░░░░] 40%`,`[████████░░] 80%`,`[██████████] 100%  <span class="c-g">✔ Data loaded. They can start dialing.</span> 📞`]); return 'Starting data load...'; },
+    './data_send.sh': () => { later([`<span class="c-m">connecting...</span>`,`<span class="c-g">✔ Data sent. Delivered. Confirmed.</span>`]); return 'Sending data...'; },
+    ping: a => { if (!/darian/i.test(a)) return `Try <span class="c-g">ping darian</span>`;
+      later([`64 bytes from darian.local: time=0.4ms <span class="c-m">(always answered fast)</span>`,`64 bytes from darian.local: time=0.6ms`,`<span class="c-r">Request timed out</span> <span class="c-m">— he's packing his desk</span>`,`<span class="c-r">50% packet loss, 100% heart loss</span>`]);
+      return 'PING darian.local'; },
+    sudo: a => /stay/i.test(a) ? `[sudo] password: ********\n<span class="c-r">Sorry, user 'everyone' is not allowed to make ${NAME} stay.</span>` : `nice try. You're not in the sudoers file. ${NAME} was.`,
+    'fix': a => {
+      if (/sound/i.test(a)) { later([`<span class="c-m">checking cables... checking drivers... is NoiseTorch active?</span>`,`<span class="c-a">NoiseTorch: inactive</span> → activating...`,`<span class="c-g">✔ NoiseTorch active. Sound fixed.</span> 🔊 <span class="c-m">"Can you hear me now?" Yes.</span>`]); return 'Running sound diagnostics...'; }
+      if (/everything/i.test(a)) { later([`✔ scripts`,`✔ data loads`,`✔ data sends`,`✔ sound`,`✔ that thing nobody else could figure out`,`<span class="c-g">All systems fixed. Standard ${NAME} day.</span>`]); return 'Fixing everything...'; }
+      return `fix: what should ${NAME} fix? Try <span class="c-g">fix sound</span> or <span class="c-g">fix everything</span>`;
+    },
+    './add_more_ram.sh': () => { later([`<span class="c-m">PC slow? Diagnosing...</span>`,`Current RAM: 8GB  <span class="c-r">✘ not enough</span>`,`[█████░░░░░] adding more RAM...`,`[██████████] <span class="c-g">✔ More RAM added. Now 16GB.</span>`,`<span class="c-m">Still slow? Add more RAM.</span>`]); return `Running ${NAME}'s universal fix...`; },
+    cat: a => /handover/i.test(a) ? `<span class="c-a">HANDOVER.TXT</span>
+- Script setups ............ good luck
+- Data loads ............... good luck
+- Data sends ............... good luck
+- Sound issues ............. is NoiseTorch active?
+- Everything else .......... we'll figure it out (we won't)
+<span class="c-m">[EOF]</span>` : `cat: ${esc(a)}: No such file. Try <span class="c-g">cat handover.txt</span>`,
+    './next_adventure.sh': () => { later([`[██░░░░░░░░] packing desk...`,`[█████░░░░░] saying goodbyes...`,`[████████░░] grabbing one last Monster...`,`[██████████] <span class="c-g">✔ Ready for the next adventure. Go get 'em, ${NAME}! 🚀</span>`]); burst(60); return 'Launching next adventure...'; },
+    clear: () => { out.innerHTML=''; return null; },
+  };
+  function later(arr){ (async()=>{ for (const l of arr){ await sleep(500); print(l); } })(); }
+  function run(raw){
+    const line = raw.trim(); if (!line) return;
+    print(`<span class="c-g">you@office:~$</span> ${esc(line)}`);
+    const [c,...rest] = line.split(/\s+/);
+    const fn = cmds[c.toLowerCase()] || cmds[c];
+    const r = fn ? fn(rest.join(' ')) : `<span class="c-r">${esc(c)}: command not found.</span> <span class="c-m">Normally we'd ask ${NAME}.</span>`;
+    if (r != null) print(r);
+  }
+  inp.addEventListener('keydown', e => { if (e.key==='Enter'){ run(inp.value); inp.value=''; } });
+  [
+    ['🧑‍💻','whoami','Who is this guy?'],
+    ['📜','./setup_script.sh','Set up a script'],
+    ['⬆️','./data_load.sh','Run a data load'],
+    ['📤','./data_send.sh','Run a data send'],
+    ['🔊','fix sound','Fix a sound issue'],
+    ['🛠️','fix everything','His speciality'],
+    ['📡','ping darian','Is he still here?'],
+    ['🔒','sudo stay','Make him stay'],
+    ['🧠','./add_more_ram.sh','Put more RAM in'],
+    ['🗂️','cat handover.txt','What he leaves behind'],
+    ['🚀','./next_adventure.sh','What\'s next'],
+  ].forEach(([e,c,d]) => {
+    const b=document.createElement('button'); b.className='cmd';
+    b.innerHTML=`<span class="e">${e}</span><span>${c}<small>${d}</small></span>`;
+    b.onclick=()=>{ run(c); b.classList.add('ran'); $('.term').scrollIntoView({behavior:'smooth',block:'start'}); };
+    $('#chips').appendChild(b);
+  });
+  print(`<span class="c-m">Welcome to ${NAME}'s shell.</span> Click a button below to run a command.`);
+})();
+
+/* ---------- REBOOT ---------- */
+(() => {
+  const msgs = [
+    `Rebooted. ${NAME} is still leaving. Issue persists.`,
+    `Rebooted again. Still leaving.`,
+    `Escalated to support. Support is also ${NAME}.`,
+    `No fix found. Workaround: stay in touch with him. ✅`,
+  ];
+  let i = 0;
+  $('#reboot').onclick = () => {
+    const f=$('#flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+    setTimeout(()=>{ $('#rebootMsg').textContent = msgs[Math.min(i++, msgs.length-1)]; }, 1300);
+  };
+})();
+
+/* ---------- FINALE ---------- */
+let finaleRunning = false;
+$('#shutdown').onclick = async () => {
+  if (finaleRunning) return; finaleRunning = true;
+  const f=$('#flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+  await sleep(900);
+  const t=$('#finalTitle'), m=$('#finalMsg'), fr=$('#finalFrom'); t.textContent=''; m.textContent=''; fr.textContent='';
+  $('#final').classList.add('show');
+  const a = `Thank you, ${NAME}, for everything.`, b = 'All the best on your journey ahead. 💚';
+  await sleep(600);
+  for (let c=1;c<=a.length;c++){ t.textContent=a.slice(0,c); await sleep(55); }
+  await sleep(400);
+  for (const ch of b){ m.textContent += ch; await sleep(40); }
+  await sleep(500);
+  for (const ch of '— From the IT Team'){ fr.textContent += ch; await sleep(45); }
+  burst(180); setTimeout(()=>burst(120),700);
+  finaleRunning = false;
+};
+$('#back').onclick = () => $('#final').classList.remove('show');
+
+/* ---------- CONFETTI (smooth) ---------- */
+const cv=$('#confetti'), cx=cv.getContext('2d', {alpha:true});
+const DPR=Math.min(window.devicePixelRatio||1, 1.5);
+let parts=[], anim=false, last=0, W=0, H=0;
+function size(){ W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; }
+addEventListener('resize', size); size();
+
+// Pre-render every piece once, so each frame is just cheap image copies
+const COLS=['#3dff9a','#ffffff','#5cc8ff','#b6ff3d','#ffc857'], GLYPHS=['0','1','⚡','💚','</>'];
+function sprite(w,h,draw){ const c=document.createElement('canvas'); c.width=Math.ceil(w*DPR); c.height=Math.ceil(h*DPR); const g=c.getContext('2d'); g.scale(DPR,DPR); draw(g); return c; }
+const RECTS=COLS.map(col=>sprite(10,5,g=>{ g.fillStyle=col; g.fillRect(0,0,10,5); }));
+const TEXTS=GLYPHS.map((t,i)=>sprite(34,22,g=>{ g.fillStyle=COLS[i%COLS.length]; g.font='bold 16px monospace'; g.textBaseline='middle'; g.textAlign='center'; g.fillText(t,17,11); }));
+
+function burst(n){
+  const max=260; n=Math.min(n, max-parts.length); if(n<=0) return;
+  for(let i=0;i<n;i++){
+    const isText=Math.random()<.25;
+    const img=isText?TEXTS[(Math.random()*TEXTS.length)|0]:RECTS[(Math.random()*RECTS.length)|0];
+    const sc=isText?1:(.6+Math.random()*.8);
+    parts.push({img,w:img.width/DPR*sc,h:img.height/DPR*sc,x:W/2+(Math.random()-.5)*200,y:H*.45,
+      vx:(Math.random()-.5)*840,vy:-(Math.random()*840+240),r:Math.random()*6.28,vr:(Math.random()-.5)*18,life:2+Math.random()*1.2});
+  }
+  if(!anim){ anim=true; last=performance.now(); requestAnimationFrame(tick); }
+}
+function tick(now){
+  const dt=Math.min((now-last)/1000, 1/30); last=now;   // time-based, so it stays smooth even if a frame is late
+  cx.setTransform(1,0,0,1,0,0); cx.clearRect(0,0,cv.width,cv.height);
+  let alive=0;
+  for(let i=0;i<parts.length;i++){
+    const p=parts[i];
+    p.life-=dt; p.vy+=1150*dt; p.vx*=(1-0.6*dt); p.x+=p.vx*dt; p.y+=p.vy*dt; p.r+=p.vr*dt;
+    if(p.life<=0 || p.y>H+40) continue;
+    parts[alive++]=p;
+    const c=Math.cos(p.r)*DPR, s=Math.sin(p.r)*DPR;
+    cx.globalAlpha=p.life<.6?p.life/.6:1;
+    cx.setTransform(c,s,-s,c,p.x*DPR,p.y*DPR);
+    cx.drawImage(p.img,-p.w/2,-p.h/2,p.w,p.h);
+  }
+  parts.length=alive;
+  if(alive) requestAnimationFrame(tick); else { anim=false; cx.setTransform(1,0,0,1,0,0); cx.clearRect(0,0,cv.width,cv.height); }
+}
+</script>
+</body>
+</html>
